@@ -78,9 +78,15 @@ def pack():
     # close_match.end() is right after the ">" of </script>, so subtract 9 to get the "<"
     content_end = content_start + close_match.end() - len('</script>')
 
-    # JSON-encode and escape </script> so the browser doesn't close the tag early.
-    # Without this, the HTML parser sees </script> inside the JSON and cuts off the template.
-    encoded_template = json.dumps(editable_content, ensure_ascii=False).replace('<\\/script>', '</script>').replace('</script>', r'<\/script>')
+    # JSON-encode and escape ALL "</" sequences to "<\/" in the JSON string.
+    # This serves two purposes:
+    # 1. Prevents the HTML parser from closing the <script> tag early at </script>.
+    # 2. Prevents the DC framework's fetch-and-update path (parseDcText) from finding
+    #    "</x-dc>" in the raw HTML source and overwriting the mounted component with
+    #    the raw JSON-encoded template content (which would show "\n" everywhere).
+    # The original Claude Design output achieved the same by using / for every "/".
+    # JSON.parse / json.loads correctly decode "<\/" back to "</" after parsing.
+    encoded_template = json.dumps(editable_content, ensure_ascii=False).replace('</', r'<\/')
 
     new_html = html_content[:content_start] + encoded_template + html_content[content_end:]
 
