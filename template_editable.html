@@ -781,7 +781,7 @@
         </svg><span
           style="font-size:8px;font-weight:800;letter-spacing:.12em;line-height:1;font-family:Manrope,sans-serif;">{{
           langLabel }}</span></button><button class="rad-fab" onclick="{{ toggleTheme }}" aria-label="Toggle theme"
-        style="position:fixed;z-index:9000;width:52px;height:52px;border-radius:50%;background:var(--chip);border:1.5px solid var(--line);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(0,0,0,0.13);padding:0;bottom:24px;right:16px;"><svg style="display:{{ theme==='light'?'block':'none' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg style="display:{{ theme==='dark'?'block':'none' }}" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button><button class="rad-fab rad-top" id="rad-top-btn"
+        style="position:fixed;z-index:9000;width:52px;height:52px;border-radius:50%;background:var(--chip);border:1.5px solid var(--line);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(0,0,0,0.13);padding:0;bottom:24px;right:16px;font-size:22px;line-height:1;">{{ themeIcon }}</button><button class="rad-fab rad-top" id="rad-top-btn"
         style="position:fixed;z-index:9000;width:52px;height:52px;border-radius:50%;background:var(--chip);border:1.5px solid var(--line);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(0,0,0,0.13);padding:0;bottom:88px;right:16px;font-size:20px;font-weight:700;line-height:1;">&#8593;</button>
 
       <div style="padding:28px 22px 12px;text-align:center;">
@@ -1060,7 +1060,7 @@ class Component extends DCLogic {
       currency: lang==='mk' ? 'ден' : 'MKD',
       tagline: lang==='mk' ? '.. во секоја голтка !' : '.. in every sip !',
       langLabel: lang==='mk' ? 'EN' : 'МК',
-      theme: this.state.theme,
+      themeIcon: this.state.theme==='light' ? '☾' : '☀',
       toggleLang: () => this.setState(s => ({ lang: s.lang==='mk'?'en':'mk' })),
       toggleTheme: () => this.setState(s => ({ theme: s.theme==='light'?'dark':'light' })),
       setEditorial: () => this.setState({ variant:'editorial' }),
