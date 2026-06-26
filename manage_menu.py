@@ -24,12 +24,15 @@ def unpack():
         return
 
     content_start = tag_match.end()
-    close_match = re.search(r'(?<!\\)</script>', html_content[content_start:], re.IGNORECASE)
+    # Anchor to the JSON's closing quote so a broken file with unescaped </script> inside
+    # the template doesn't cause us to stop too early.
+    close_match = re.search(r'"\s*</script>', html_content[content_start:], re.IGNORECASE)
     if not close_match:
         print("Error: Could not find the closing </script> for the template tag.")
         return
 
-    raw_json = html_content[content_start : content_start + close_match.start()].strip()
+    # close_match.end() is after the ">"; subtract 9 to get the position of "<"
+    raw_json = html_content[content_start : content_start + close_match.end() - len('</script>')].strip()
 
     try:
         template_json = json.loads(raw_json)
@@ -62,12 +65,18 @@ def pack():
         return
 
     content_start = tag_match.end()
-    close_match = re.search(r'(?<!\\)</script>', html_content[content_start:], re.IGNORECASE)
+    # Find the real closing </script> by anchoring to the JSON string's closing quote.
+    # A valid template JSON ends with " then optional whitespace then </script>.
+    # Using just (?<!\\)</script> would stop at the first unescaped </script> inside
+    # a broken/unescaped template, replacing only part of the old content and leaving
+    # garbage in the HTML.
+    close_match = re.search(r'"\s*</script>', html_content[content_start:], re.IGNORECASE)
     if not close_match:
         print("Error: Could not find the closing </script> for the template tag.")
         return
 
-    content_end = content_start + close_match.start()
+    # close_match.end() is right after the ">" of </script>, so subtract 9 to get the "<"
+    content_end = content_start + close_match.end() - len('</script>')
 
     # JSON-encode and escape </script> so the browser doesn't close the tag early.
     # Without this, the HTML parser sees </script> inside the JSON and cuts off the template.
