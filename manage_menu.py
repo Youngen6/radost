@@ -14,13 +14,25 @@ def unpack():
     with open(HTML_PATH, "r", encoding="utf-8") as f:
         html_content = f.read()
 
-    template_match = re.search(r'<script[^>]*type=["\']__bundler/template["\'][^>]*>(.*?)</script>', html_content, re.DOTALL | re.IGNORECASE)
-    if not template_match:
+    # Find the opening tag, then extract everything up to the real closing </script>.
+    # We can't use a simple regex because </script> may appear inside the JSON content.
+    # Instead: find the tag open, then walk forward until we find </script> that is NOT
+    # preceded by a backslash (i.e. not the escaped <\/script> inside the JSON string).
+    tag_match = re.search(r'<script[^>]*type=["\']__bundler/template["\'][^>]*>', html_content, re.IGNORECASE)
+    if not tag_match:
         print("Error: Could not find the template script tag inside index.html.")
         return
 
+    content_start = tag_match.end()
+    close_match = re.search(r'(?<!\\)</script>', html_content[content_start:], re.IGNORECASE)
+    if not close_match:
+        print("Error: Could not find the closing </script> for the template tag.")
+        return
+
+    raw_json = html_content[content_start : content_start + close_match.start()].strip()
+
     try:
-        template_json = json.loads(template_match.group(1).strip())
+        template_json = json.loads(raw_json)
         with open(EDITABLE_PATH, "w", encoding="utf-8") as f_out:
             f_out.write(template_json)
         print(f"Success! Unpacked template to {EDITABLE_PATH}.")
@@ -43,16 +55,25 @@ def pack():
     with open(EDITABLE_PATH, "r", encoding="utf-8") as f:
         editable_content = f.read()
 
-    # Find the tag to replace
-    pattern = r'(<script[^>]*type=["\']__bundler/template["\'][^>]*>)(.*?)(</script>)'
-    
-    # JSON-encode the editable content to match the original layout
-    encoded_template = json.dumps(editable_content)
-
-    new_html, count = re.subn(pattern, rf"\g<1>{encoded_template}\g<3>", html_content, flags=re.DOTALL | re.IGNORECASE)
-    if count == 0:
+    # Find the opening tag using the same robust approach as unpack()
+    tag_match = re.search(r'<script[^>]*type=["\']__bundler/template["\'][^>]*>', html_content, re.IGNORECASE)
+    if not tag_match:
         print("Error: Could not find the template script tag inside index.html to replace.")
         return
+
+    content_start = tag_match.end()
+    close_match = re.search(r'(?<!\\)</script>', html_content[content_start:], re.IGNORECASE)
+    if not close_match:
+        print("Error: Could not find the closing </script> for the template tag.")
+        return
+
+    content_end = content_start + close_match.start()
+
+    # JSON-encode and escape </script> so the browser doesn't close the tag early.
+    # Without this, the HTML parser sees </script> inside the JSON and cuts off the template.
+    encoded_template = json.dumps(editable_content, ensure_ascii=False).replace('<\\/script>', '</script>').replace('</script>', r'<\/script>')
+
+    new_html = html_content[:content_start] + encoded_template + html_content[content_end:]
 
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(new_html)
