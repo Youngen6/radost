@@ -1060,7 +1060,7 @@ class Component extends DCLogic {
       currency: lang==='mk' ? 'ден' : 'MKD',
       tagline: lang==='mk' ? '.. во секоја голтка !' : '.. in every sip !',
       langLabel: lang==='mk' ? 'EN' : 'МК',
-      theme,
+      theme: this.state.theme,
       toggleLang: () => this.setState(s => ({ lang: s.lang==='mk'?'en':'mk' })),
       toggleTheme: () => this.setState(s => ({ theme: s.theme==='light'?'dark':'light' })),
       setEditorial: () => this.setState({ variant:'editorial' }),
